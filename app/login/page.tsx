@@ -1,86 +1,95 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { Mail, Lock, ArrowRight } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Mail, Lock, ArrowRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { signIn } from "next-auth/react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
+  });
   const [errors, setErrors] = useState({
     email: "",
     password: "",
-  })
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
     // Clear error when user types
     if (errors[name as keyof typeof errors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }))
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    let valid = true
-    const newErrors = { email: "", password: "" }
+    let valid = true;
+    const newErrors = { email: "", password: "" };
 
     if (!formData.email) {
-      newErrors.email = "Email is required"
-      valid = false
+      newErrors.email = "Email is required";
+      valid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email"
-      valid = false
+      newErrors.email = "Please enter a valid email";
+      valid = false;
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required"
-      valid = false
+      newErrors.password = "Password is required";
+      valid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-      valid = false
+      newErrors.password = "Password must be at least 6 characters";
+      valid = false;
     }
 
-    setErrors(newErrors)
-    return valid
-  }
+    setErrors(newErrors);
+    return valid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateForm()) return
+    e.preventDefault();
+    if (!validateForm()) return;
 
-    setIsLoading(true)
-    try {
-      // In a real app, this would be an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      // Simulate successful login
-      router.push("/dashboard")
-    } catch (error) {
-      console.error("Login error:", error)
-      alert("Failed to log in. Please check your credentials.")
-    } finally {
-      setIsLoading(false)
+    setIsLoading(true);
+    const res = await signIn("credentials", {
+      redirect: false,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    setIsLoading(false);
+
+    if (res?.error) {
+      alert("Invalid credentials");
+    } else {
+      router.push("/dashboard");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -97,7 +106,9 @@ export default function LoginPage() {
           <Card className="border-slate-200/50 shadow-xl backdrop-blur-sm bg-white/95">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
-              <CardDescription>Log in to your account to continue your prep journey</CardDescription>
+              <CardDescription>
+                Log in to your account to continue your prep journey
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form className="mt-4 space-y-6" onSubmit={handleSubmit}>
@@ -113,11 +124,17 @@ export default function LoginPage() {
                         autoComplete="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className={`pl-10 ${errors.email ? "border-red-300 focus:ring-red-500" : ""}`}
+                        className={`pl-10 ${
+                          errors.email
+                            ? "border-red-300 focus:ring-red-500"
+                            : ""
+                        }`}
                         placeholder="you@example.com"
                       />
                     </div>
-                    {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-sm text-red-500">{errors.email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -139,11 +156,17 @@ export default function LoginPage() {
                         autoComplete="current-password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        className={`pl-10 ${errors.password ? "border-red-300 focus:ring-red-500" : ""}`}
+                        className={`pl-10 ${
+                          errors.password
+                            ? "border-red-300 focus:ring-red-500"
+                            : ""
+                        }`}
                         placeholder="••••••••"
                       />
                     </div>
-                    {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
+                    {errors.password && (
+                      <p className="text-sm text-red-500">{errors.password}</p>
+                    )}
                   </div>
                 </div>
 
@@ -158,8 +181,13 @@ export default function LoginPage() {
                 </Button>
 
                 <div className="text-sm text-center">
-                  <span className="text-slate-600">Don't have an account? </span>
-                  <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                  <span className="text-slate-600">
+                    Don't have an account?{" "}
+                  </span>
+                  <Link
+                    href="/signup"
+                    className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  >
                     Sign up now
                   </Link>
                 </div>
@@ -169,5 +197,5 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
